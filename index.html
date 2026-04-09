@@ -228,6 +228,11 @@
             pointer-events: none;
         }
 
+        #isBaCheck {
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
         /* ===== MAIN LAYOUT ===== */
         .main-container {
             display: flex;
@@ -620,7 +625,7 @@
         </div>
         <div class="requirements-section elective-requirements">
             <div class="elective-checkboxes">
-                <h3>Electives (6 hrs)</h3>
+                <h3>Electives (6 hrs for BS)</h3>
                 <div class="checkbox-item">
                     <input type="checkbox" id="elective1Check">
                     <span>3 Elective Hours</span>
@@ -628,6 +633,10 @@
                 <div class="checkbox-item">
                     <input type="checkbox" id="elective2Check">
                     <span>3 Elective Hours</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="isBaCheck">
+                    <span>Is BA</span>
                 </div>
             </div>
             <div class="elective-list-container">
@@ -699,7 +708,7 @@
     <script type="module">
         // ===== FIREBASE / STUDENT LOGIC =====
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCNVmnET3a8kDBRjR5hSb1QY-XcTjPgANc",
@@ -764,13 +773,18 @@
         async function loadStudentData(studentId) {
             try {
                 window.resetAllPlacements();
-                const snapshot = await getDocs(collection(db, 'students', studentId, 'placements'));
-                snapshot.forEach(docSnap => {
+                const [studentDocSnap, placementsSnap] = await Promise.all([
+                    getDoc(doc(db, 'students', studentId)),
+                    getDocs(collection(db, 'students', studentId, 'placements'))
+                ]);
+                placementsSnap.forEach(docSnap => {
                     const data = docSnap.data();
                     if (data.courses && Array.isArray(data.courses)) {
                         data.courses.forEach(courseCode => window.placeCourse(courseCode, docSnap.id));
                     }
                 });
+                const isBa = studentDocSnap.exists() ? (studentDocSnap.data().isBa ?? false) : false;
+                document.getElementById('isBaCheck').checked = isBa;
                 window.updateRequirements();
             } catch (err) {
                 console.error('Error loading student data:', err);
@@ -792,6 +806,7 @@
 
                 writes.push(setDoc(doc(db, 'students', studentId), {
                     name: studentName,
+                    isBa: document.getElementById('isBaCheck').checked,
                     lastUpdated: serverTimestamp()
                 }));
 
@@ -816,7 +831,7 @@
             { code: 'MATH 2315', name: 'Discrete Mathematics', allowed: null, isCore: true },
             { code: 'MATH 2413', name: 'Calculus I', allowed: null, isCore: true },
             { code: 'MATH 2414', name: 'Calculus II', allowed: null, isCore: true, prereqs: '2413'},
-            { code: 'MATH 2321', name: 'Calculus III', allowed: ['summer-2026', 'fall-2027', 'summer-2027', 'summer-2028', 'summer-2029', 'fall-2029', 'summer-2030'], isCore: true, prereqs: '2414' },
+            { code: 'MATH 2321', name: 'Calculus III', allowed: ['summer-2026', 'fall-2026', 'fall-2027', 'summer-2027', 'summer-2028', 'summer-2029', 'fall-2029', 'summer-2030'], isCore: true, prereqs: '2414' },
             { code: 'MATH 3305', name: 'Linear Algebra', allowed: ['spring-2027', 'spring-2028'], isCore: true, prereqs: '2413' },
             { code: 'MATH 3310', name: 'Differential Equations', allowed: ['fall-2026', 'fall-2028'], isCore: true, prereqs: '2414' },
             { code: 'MATH 3311', name: 'Inquiry & Proof', allowed: ['fall-2027', 'fall-2028', 'fall-2029', 'fall-2030'], isCore: true, prereqs: '2413, 2315' },
@@ -890,6 +905,7 @@
             renderRequirements();
             setupDragAndDrop();
             setupSummerToggle();
+            document.getElementById('isBaCheck').addEventListener('change', updateRequirements);
             updateRequirements();
         }
 
@@ -1220,9 +1236,11 @@
                 electiveList.innerHTML = '<em style="opacity: 0.5;">None placed</em>';
             }
 
-            // Update elective section styling
+            // Update elective section styling (BA requires 1 elective, BS requires 2)
+            const isBa = document.getElementById('isBaCheck').checked;
+            const electiveThreshold = isBa ? 1 : 2;
             const electiveSection = document.querySelector('.elective-requirements');
-            electiveSection.classList.toggle('complete', totalElectiveSlots >= 2);
+            electiveSection.classList.toggle('complete', totalElectiveSlots >= electiveThreshold);
 
             // Update certificate checkboxes
             let certificateComplete = 0;
@@ -1242,7 +1260,7 @@
             // Check if all requirements are complete (not including certificate)
             // Core count is now 10 regular + 1 for 41XX = 11 total
             const totalCoreRequired = coreCourses.length + 1; // +1 for 41XX
-            const allComplete = (coreComplete === totalCoreRequired) && (oneOfFourPlacedCount >= 1) && (totalElectiveSlots >= 2);
+            const allComplete = (coreComplete === totalCoreRequired) && (oneOfFourPlacedCount >= 1) && (totalElectiveSlots >= electiveThreshold);
             document.getElementById('requirementsHeader').classList.toggle('all-complete', allComplete);
         }
 

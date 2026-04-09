@@ -711,25 +711,25 @@
         };
 
         const STUDENTS = [
-            { id: "curl",          name: "Curl, Jonathan R." },
-            { id: "dunn",          name: "Dunn, Henry J." },
-            { id: "glazener",      name: "Glazener, Jacob L." },
-            { id: "guajardo",      name: "Guajardo, Josiah A." },
-            { id: "hoffman",       name: "Hoffman, Isaiah K." },
-            { id: "islam",         name: "Islam, Mayukh I." },
-            { id: "jowad",         name: "Jowad, Rifat Abrar" },
-            { id: "kim",           name: "Kim, Woo Seok" },
-            { id: "mohsin",        name: "Mohsin, Abdur Rehman Bin" },
-            { id: "omoigberai",    name: "Omoigberai, Joshua I." },
-            { id: "piskin",        name: "Piskin, Belgin" },
-            { id: "ramirez-nunez", name: "Ramirez Nunez, Ivan" },
-            { id: "raza",          name: "Raza, Syed A." },
-            { id: "roque",         name: "Roque, Chloe N." },
-            { id: "shroff",        name: "Shroff, Dharmik M." },
-            { id: "soviero",       name: "Soviero, Liette J." },
-            { id: "tovar-castro",  name: "Tovar-Castro, Mia" },
-            { id: "tovar-pedroza", name: "Tovar Pedroza, Natalia" },
-            { id: "yoshioka",      name: "Yoshioka, Joshua A." },
+            { id: "JonathanC",   name: "JonathanC" },
+            { id: "HenryD",      name: "HenryD" },
+            { id: "JacobG",      name: "JacobG" },
+            { id: "JosiahG",     name: "JosiahG" },
+            { id: "IsaiahH",     name: "IsaiahH" },
+            { id: "MayukhI",     name: "MayukhI" },
+            { id: "RifatJ",      name: "RifatJ" },
+            { id: "WooSeokK",    name: "WooSeokK" },
+            { id: "AbdurM",      name: "AbdurM" },
+            { id: "JoshuaO",     name: "JoshuaO" },
+            { id: "BelginP",     name: "BelginP" },
+            { id: "IvanR",       name: "IvanR" },
+            { id: "SyedR",       name: "SyedR" },
+            { id: "ChloeR",      name: "ChloeR" },
+            { id: "DharmikS",    name: "DharmikS" },
+            { id: "LietteS",     name: "LietteS" },
+            { id: "MiaT",        name: "MiaT" },
+            { id: "NataliaT",    name: "NataliaT" },
+            { id: "JoshuaY",     name: "JoshuaY" }
         ];
 
         const app = initializeApp(firebaseConfig);
@@ -738,9 +738,10 @@
         let currentStudentId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Populate student dropdown
+            // Populate student dropdown sorted by last character then remaining (e.g. "JonathanC" → key "CJonathan")
             const select = document.getElementById('studentSelect');
-            STUDENTS.forEach(student => {
+            const sortKey = name => name.slice(-1) + name.slice(0, -1);
+            [...STUDENTS].sort((a, b) => sortKey(a.name).localeCompare(sortKey(b.name))).forEach(student => {
                 const option = document.createElement('option');
                 option.value = student.id;
                 option.textContent = student.name;

@@ -1,0 +1,1069 @@
+@ -1,1047 +0,0 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Degree Planner - Course Scheduling</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f8f7f4;
+            --bg-card: #ffffff;
+            --bg-finished: #e8f5e9;
+            --bg-requirements: #ffffff;
+            --bg-requirements-complete: #c8e6c9;
+            --border-color: #d4d0c8;
+            --text-primary: #2d2d2d;
+            --text-secondary: #666;
+            --math-red: #ffcdd2;
+            --math-red-border: #ef9a9a;
+            --accent-blue: #5c7cfa;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', -apple-system, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.4;
+        }
+
+        /* ===== REQUIREMENTS HEADER ===== */
+        .requirements-header {
+            background: var(--bg-requirements);
+            border-bottom: 2px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            transition: background 0.4s ease;
+        }
+
+        .requirements-header.all-complete {
+            background: var(--bg-requirements-complete);
+        }
+
+        .requirements-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .requirements-section h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .core-requirements {
+            flex: 8;
+        }
+
+        .core-requirements .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px 12px;
+        }
+
+        .one-of-four-requirements {
+            flex: 3;
+        }
+
+        .one-of-four-requirements .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px 8px;
+        }
+
+        .elective-requirements {
+            flex: 6;
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+        }
+
+        .certificate-requirements {
+            flex: 3;
+        }
+
+        .certificate-requirements .checkbox-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .elective-checkboxes {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .elective-list-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .elective-list-container h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .elective-list {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 18px;
+        }
+
+        .elective-list span {
+            display: inline-block;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 2px 4px 2px 0;
+        }
+
+        .requirements-section.complete {
+            background: #e8f5e9;
+            border-color: #a5d6a7;
+        }
+
+        .elective-box {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+        }
+
+        .elective-box.complete {
+            background: #e8f5e9;
+            border-color: #a5d6a7;
+        }
+
+        .elective-box h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #4caf50;
+            pointer-events: none;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 120px);
+        }
+
+        /* ===== SEMESTERS AREA (LEFT 75%) ===== */
+        .semesters-area {
+            flex: 3;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .controls-bar label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .controls-bar input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-blue);
+        }
+
+        /* ===== FINISHED BOX ===== */
+        .finished-box {
+            background: var(--bg-finished);
+            border: 2px dashed #a5d6a7;
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            min-height: 70px;
+            flex-shrink: 0;
+        }
+
+        .finished-box h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #388e3c;
+            margin-bottom: 8px;
+        }
+
+        .finished-courses {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 8px;
+            min-height: 36px;
+        }
+
+        .finished-courses .course-note {
+            max-width: 160px;
+            flex-shrink: 0;
+        }
+
+        /* ===== SEMESTER GRID ===== */
+        .semester-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .semester-grid.show-summer {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .semester-grid.hide-summer {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .semester-row {
+            display: contents;
+        }
+
+        .semester-box {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 10px 12px;
+            min-height: 60px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .semester-box.drag-over {
+            border-color: var(--accent-blue);
+            box-shadow: var(--shadow-md), 0 0 0 3px rgba(92, 124, 250, 0.15);
+        }
+
+        .semester-box.invalid-drop {
+            opacity: 0.4;
+            background: #e0e0e0;
+            border-color: #bbb;
+            pointer-events: none;
+        }
+
+        .semester-box.invalid-drop.summer {
+            background: #e8e8d8;
+        }
+
+        .semester-box.summer {
+            background: #fffde7;
+            border-color: #fff59d;
+        }
+
+        .semester-box h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .semester-courses {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 24px;
+        }
+
+        .summer-hidden {
+            display: none !important;
+        }
+
+        /* ===== COURSES LIST (RIGHT 25%) ===== */
+        .courses-sidebar {
+            flex: 1;
+            background: #f0efe9;
+            border-left: 2px solid var(--border-color);
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .courses-sidebar h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .unused-courses {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* ===== COURSE NOTES (STICKY NOTES) ===== */
+        .course-note {
+            background: var(--math-red);
+            border: 1px solid var(--math-red-border);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .course-note:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .course-note.dragging {
+            opacity: 0.6;
+            cursor: grabbing;
+            transform: scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .course-note .course-code {
+            font-weight: 700;
+            display: block;
+        }
+
+        .course-note .course-name {
+            font-size: 11px;
+            color: #5d4037;
+            margin-top: 2px;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        .course-note.certificate {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .course-note.certificate::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 16px 16px 0;
+            border-color: transparent #ffd54f transparent transparent;
+        }
+
+        .course-note.on-demand {
+            background: #d7d7d7;
+            border-color: #bbb;
+        }
+
+        .course-note .course-prereqs {
+            font-size: 10px;
+            color: #777;
+            margin-top: 2px;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-style: italic;
+        }
+
+        /* ===== DROP ZONE INDICATOR ===== */
+        .drop-zone {
+            transition: background 0.2s;
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(92, 124, 250, 0.08);
+        }
+
+        /* Warning Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 360px;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 12px;
+            color: #d32f2f;
+        }
+
+        .modal-content p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .modal-content button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .modal-content button:hover {
+            background: #4a6cf0;
+        }
+    </style>
+    <!-- Firebase SDK (modular v11) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        // Your config here
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            // ...etc
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make db available globally so your other JS can use it
+        window.db = db;
+        window.firestoreReady = true;
+        window.dispatchEvent(new Event('firestoreReady'));
+    </script>
+</head>
+<body>
+    <!-- REQUIREMENTS HEADER -->
+    <div class="requirements-header" id="requirementsHeader">
+        <div class="requirements-section core-requirements">
+            <h3>Core Requirements</h3>
+            <div class="checkbox-grid" id="coreCheckboxes">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        <div class="requirements-section one-of-four-requirements">
+            <h3>Complete 1 of 4</h3>
+            <div class="checkbox-grid" id="oneOfFourCheckboxes">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+        <div class="requirements-section elective-requirements">
+            <div class="elective-checkboxes">
+                <h3>Electives (6 hrs)</h3>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="elective1Check">
+                    <span>3 Elective Hours</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="elective2Check">
+                    <span>3 Elective Hours</span>
+                </div>
+            </div>
+            <div class="elective-list-container">
+                <h4>Counting as Electives</h4>
+                <div class="elective-list" id="electiveList">
+                    <!-- Populated by JS with course numbers counting as electives -->
+                </div>
+            </div>
+        </div>
+        <div class="requirements-section certificate-requirements">
+            <h3>Data Certificate</h3>
+            <div class="checkbox-grid" id="certificateCheckboxes">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        <!-- SEMESTERS AREA -->
+        <div class="semesters-area">
+            <div class="controls-bar">
+                <label>
+                    <input type="checkbox" id="summerToggle" checked>
+                    Show Summer Semesters
+                </label>
+            </div>
+
+            <!-- FINISHED BOX -->
+            <div class="finished-box drop-zone" id="finishedBox" data-semester="finished">
+                <h3>✓ Completed / In Progress</h3>
+                <div class="finished-courses" id="finishedCourses"></div>
+            </div>
+
+            <!-- SEMESTER GRID -->
+            <div class="semester-grid show-summer" id="semesterGrid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- COURSES SIDEBAR -->
+        <div class="courses-sidebar">
+            <h2>Available Courses</h2>
+            <div class="unused-courses drop-zone" id="unusedCourses">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- WARNING MODAL -->
+    <div class="modal-overlay" id="warningModal">
+        <div class="modal-content">
+            <h3>⚠️ Cannot Hide Summer</h3>
+            <p>There are courses placed in Summer semesters. Please move them before hiding the Summer column.</p>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== COURSE DATA =====
+        // Format: { code, name, allowedSemesters (null = any, 'finished' always allowed) }
+        // allowedSemesters is array of semester IDs like ['fall-2028', 'fall-2030']
+        // Note: isOneOfFour courses can ALSO count as electives if more than one is placed
+        const COURSES = [
+            // Core Requirements (10)
+            { code: 'MATH 2315', name: 'Discrete Mathematics', allowed: null, isCore: true },
+            { code: 'MATH 2413', name: 'Calculus I', allowed: null, isCore: true },
+            { code: 'MATH 2414', name: 'Calculus II', allowed: null, isCore: true, prereqs: '2413'},
+            { code: 'MATH 2321', name: 'Calculus III', allowed: ['fall-2027', 'summer-2027', 'summer-2028', 'summer-2029', 'fall-2029', 'summer-2030'], isCore: true, prereqs: '2414' },
+            { code: 'MATH 3305', name: 'Linear Algebra', allowed: ['spring-2027', 'spring-2028'], isCore: true, prereqs: '2413' },
+            { code: 'MATH 3310', name: 'Differential Equations', allowed: ['fall-2026', 'fall-2028'], isCore: true, prereqs: '2414' },
+            { code: 'MATH 3311', name: 'Inquiry & Proof', allowed: ['fall-2027', 'fall-2028', 'fall-2029', 'fall-2030'], isCore: true, prereqs: '2413, 2315' },
+            { code: 'MATH 3316', name: 'Intro to Real Analysis', allowed: ['spring-2028'], isCore: true, prereqs: '2414, 3311' },
+            { code: 'MATH 3326', name: 'Intro Math Stats', allowed: ['fall-2026', 'fall-2027', 'fall-2028', 'fall-2029'], isCore: true, isCertificate: true, prereqs: '2413' },
+            { code: 'MATH 4342', name: 'Abstract Algebra', allowed: ['spring-2027', 'spring-2029'], isCore: true, prereqs: '3311, 3305' },
+
+            // One of Four Options (4) - these can also count as electives if >1 is placed
+            { code: 'MATH 3334', name: 'Probability Theory', allowed: ['fall-2027', 'fall-2029'], isOneOfFour: true, prereqs: '2414' },
+            { code: 'MATH 3337', name: 'Statistical Modeling', allowed: ['spring-2027', 'spring-2029'], isOneOfFour: true, prereqs: '3326' },
+            { code: 'MATH 4331', name: 'Complex Analysis', allowed: ['fall-2027', 'fall-2030'], isOneOfFour: true, prereqs: '2321, 3311' },
+            { code: 'MATH 4332', name: 'Topics in Real Analysis', allowed: ['fall-2028'], isOneOfFour: true, prereqs: '3311' },
+
+            // Electives (4 additional courses for variety)
+            { code: 'MATH 3338', name: 'Numerical Methods', allowed: ['fall-2026'], isElective: true, prereqs: '2414, COSC 1423'},
+            { code: 'MATH 3339', name: 'Introduction to Data Science', allowed: ['spring-2027', 'spring-2028', 'spring-2029', 'spring-2030'], isElective: true, isCertificate: true, prereqs: '2327' },
+            { code: 'MATH 3345', name: 'Special Topics in Mathematics', allowed: null, isElective: true, onDemandOnly: true},
+            { code: 'MATH 3355', name: 'Special Topics in Statistics', allowed: null, isElective: true, onDemandOnly: true },
+            { code: 'MATH 4340', name: 'Data Science at Scale', allowed: null, isElective: true, onDemandOnly: true },
+            { code: 'MATH 4343', name: 'Topology', allowed: ['fall-2029'], isElective: true, prereqs: '3311' },
+            { code: 'MATH 4344', name: 'Advanced Topics in Mathematics', allowed: null, isElective: true, onDemandOnly: true },
+
+            // Certificate only
+            { code: 'MATH 2327', name: 'Introduction to Data Analysis', allowed: null, isCertificate: true },
+
+            // Research requirement (need 4 of these 5)
+            { code: 'MATH 4157a', name: 'Research', allowed: null, isResearch: true },
+            { code: 'MATH 4157b', name: 'Research', allowed: null, isResearch: true },
+            { code: 'MATH 4157c', name: 'Research', allowed: null, isResearch: true },
+            { code: 'MATH 4157d', name: 'Research', allowed: null, isResearch: true },
+            { code: 'MATH 4150', name: 'Internship', allowed: null, isResearch: true, isCertificate: true },
+        ];
+
+        // Semesters configuration
+        const YEARS = [2026, 2027, 2028, 2029, 2030];
+        const SEMESTERS = [];
+
+        // Generate semesters: Fall 2026 through Summer 2030
+        YEARS.forEach((year, idx) => {
+            if (idx === 0) {
+                // First year only has Fall
+                SEMESTERS.push({ id: `fall-${year}`, label: `Fall ${year}`, type: 'fall' });
+            } else {
+                SEMESTERS.push({ id: `spring-${year}`, label: `Spring ${year}`, type: 'spring' });
+                SEMESTERS.push({ id: `summer-${year}`, label: `Summer ${year}`, type: 'summer' });
+                if (year < 2030) {
+                    SEMESTERS.push({ id: `fall-${year}`, label: `Fall ${year}`, type: 'fall' });
+                }
+            }
+        });
+        // Add final semesters for 2030
+        SEMESTERS.push({ id: 'summer-2030', label: 'Summer 2030', type: 'summer' });
+
+        // Reorganize into rows: Fall | Spring | Summer per academic year
+        const SEMESTER_ROWS = [
+            [{ id: 'fall-2026', label: 'Fall 2026', type: 'fall' }, { id: 'spring-2027', label: 'Spring 2027', type: 'spring' }, { id: 'summer-2027', label: 'Summer 2027', type: 'summer' }],
+            [{ id: 'fall-2027', label: 'Fall 2027', type: 'fall' }, { id: 'spring-2028', label: 'Spring 2028', type: 'spring' }, { id: 'summer-2028', label: 'Summer 2028', type: 'summer' }],
+            [{ id: 'fall-2028', label: 'Fall 2028', type: 'fall' }, { id: 'spring-2029', label: 'Spring 2029', type: 'spring' }, { id: 'summer-2029', label: 'Summer 2029', type: 'summer' }],
+            [{ id: 'fall-2029', label: 'Fall 2029', type: 'fall' }, { id: 'spring-2030', label: 'Spring 2030', type: 'spring' }, { id: 'summer-2030', label: 'Summer 2030', type: 'summer' }],
+        ];
+
+        // State: track where each course is placed
+        const courseLocations = {}; // courseCode -> semesterId or 'finished' or 'unused'
+        COURSES.forEach(c => courseLocations[c.code] = 'unused');
+
+        // ===== INITIALIZATION =====
+        function init() {
+            renderSemesters();
+            renderCourses();
+            renderRequirements();
+            setupDragAndDrop();
+            setupSummerToggle();
+            updateRequirements();
+        }
+
+        function renderSemesters() {
+            const grid = document.getElementById('semesterGrid');
+            grid.innerHTML = '';
+
+            SEMESTER_ROWS.forEach(row => {
+                row.forEach(sem => {
+                    const box = document.createElement('div');
+                    box.className = `semester-box drop-zone ${sem.type === 'summer' ? 'summer' : ''}`;
+                    box.dataset.semester = sem.id;
+                    box.innerHTML = `
+                        <h4>${sem.label}</h4>
+                        <div class="semester-courses" id="courses-${sem.id}"></div>
+                    `;
+                    grid.appendChild(box);
+                });
+            });
+        }
+
+        function renderCourses() {
+            const container = document.getElementById('unusedCourses');
+            container.innerHTML = '';
+
+            // Sort courses by the numeric part of the code
+            const sortedCourses = [...COURSES].sort((a, b) => {
+                let numA = a.code.replace(/[^0-9]/g, '');
+                let numB = b.code.replace(/[^0-9]/g, '');
+                // Hack: make Cal III (2321) sort after Cal II (2414)
+                if (numA === '2321') numA = '2414.5';
+                if (numB === '2321') numB = '2414.5';
+                return numA.localeCompare(numB, undefined, { numeric: true });
+            });
+
+            sortedCourses.forEach(course => {
+                const note = createCourseNote(course);
+                container.appendChild(note);
+            });
+        }
+
+        function createCourseNote(course) {
+            const note = document.createElement('div');
+            let classes = 'course-note';
+            if (course.isCertificate) classes += ' certificate';
+            if (course.onDemandOnly) classes += ' on-demand';
+            note.className = classes;
+            note.draggable = true;
+            note.dataset.code = course.code;
+            
+            let html = `
+                <span class="course-code">${course.code}</span>
+                <span class="course-name">${course.name}</span>
+            `;
+            if (course.prereqs) {
+                html += `<span class="course-prereqs">(Pre: ${course.prereqs})</span>`;
+            }
+            note.innerHTML = html;
+            return note;
+        }
+
+        function renderRequirements() {
+            // Core requirements
+            const coreContainer = document.getElementById('coreCheckboxes');
+            COURSES.filter(c => c.isCore).forEach(course => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="req-${course.code}" data-course="${course.code}">
+                    <span>${course.code.replace('MATH ', '')}</span>
+                `;
+                coreContainer.appendChild(item);
+            });
+
+            // Add the 41XX (research) checkbox to core requirements
+            const researchItem = document.createElement('div');
+            researchItem.className = 'checkbox-item';
+            researchItem.innerHTML = `
+                <input type="checkbox" id="req-41XX" data-course="41XX">
+                <span>41XX</span>
+            `;
+            coreContainer.appendChild(researchItem);
+
+            // One of four
+            const oneOfFourContainer = document.getElementById('oneOfFourCheckboxes');
+            COURSES.filter(c => c.isOneOfFour).forEach(course => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="req-${course.code}" data-course="${course.code}">
+                    <span>${course.code.replace('MATH ', '')}</span>
+                `;
+                oneOfFourContainer.appendChild(item);
+            });
+
+            // Certificate
+            const certificateContainer = document.getElementById('certificateCheckboxes');
+            COURSES.filter(c => c.isCertificate).forEach(course => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="cert-${course.code}" data-course="${course.code}">
+                    <span>${course.code.replace('MATH ', '')}</span>
+                `;
+                certificateContainer.appendChild(item);
+            });
+        }
+
+        // ===== DRAG AND DROP =====
+        let draggedCourse = null;
+
+        function setupDragAndDrop() {
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('course-note')) {
+                    draggedCourse = e.target;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+
+                    // Gray out invalid semesters for this course
+                    const courseCode = e.target.dataset.code;
+                    highlightValidSemesters(courseCode);
+                }
+            });
+
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('course-note')) {
+                    e.target.classList.remove('dragging');
+                    draggedCourse = null;
+                    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+                    // Clear invalid semester highlighting
+                    clearSemesterHighlighting();
+                }
+            });
+
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('dragleave', handleDragLeave);
+                zone.addEventListener('drop', handleDrop);
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const zone = e.currentTarget;
+            const semesterId = zone.dataset.semester;
+
+            // Check if drop is allowed
+            if (draggedCourse && canDropInSemester(draggedCourse.dataset.code, semesterId)) {
+                zone.classList.add('drag-over');
+                e.dataTransfer.dropEffect = 'move';
+            } else {
+                e.dataTransfer.dropEffect = 'none';
+            }
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const zone = e.currentTarget;
+            zone.classList.remove('drag-over');
+
+            if (!draggedCourse) return;
+
+            const courseCode = draggedCourse.dataset.code;
+            const semesterId = zone.dataset.semester;
+
+            if (!canDropInSemester(courseCode, semesterId)) {
+                return; // Silently reject
+            }
+
+            // Move the course
+            let targetContainer;
+            if (semesterId === 'finished') {
+                targetContainer = document.getElementById('finishedCourses');
+            } else if (zone.id === 'unusedCourses') {
+                targetContainer = zone;
+            } else {
+                targetContainer = zone.querySelector('.semester-courses');
+            }
+
+            if (targetContainer) {
+                targetContainer.appendChild(draggedCourse);
+                courseLocations[courseCode] = semesterId || 'unused';
+                updateRequirements();
+                sortContainerByCode(targetContainer);
+            }
+            
+
+        }
+
+        function canDropInSemester(courseCode, semesterId) {
+            // Unused area always accepts
+            if (!semesterId) return true;
+
+            // Finished box always accepts (ignores restrictions)
+            if (semesterId === 'finished') return true;
+
+            // Check course restrictions
+            const course = COURSES.find(c => c.code === courseCode);
+            if (!course) return false;
+
+            // null means any semester is allowed
+            if (course.allowed === null) return true;
+
+            // Check if this semester is in the allowed list
+            return course.allowed.includes(semesterId);
+        }
+
+        function highlightValidSemesters(courseCode) {
+            const course = COURSES.find(c => c.code === courseCode);
+            if (!course || course.allowed === null) return; // No restrictions, don't gray anything
+
+            // Gray out all semester boxes that are NOT valid for this course
+            document.querySelectorAll('.semester-box').forEach(box => {
+                const semesterId = box.dataset.semester;
+                if (!canDropInSemester(courseCode, semesterId)) {
+                    box.classList.add('invalid-drop');
+                }
+            });
+        }
+
+        function clearSemesterHighlighting() {
+            document.querySelectorAll('.semester-box.invalid-drop').forEach(box => {
+                box.classList.remove('invalid-drop');
+            });
+        }
+
+        function sortContainerByCode(container) {
+            const notes = Array.from(container.querySelectorAll('.course-note'));
+            notes.sort((a, b) => {
+                let numA = a.dataset.code.replace(/[^0-9]/g, '');
+                let numB = b.dataset.code.replace(/[^0-9]/g, '');
+                // Hack: make Cal III (2321) sort after Cal II (2414)
+                if (numA === '2321') numA = '2414.5';
+                if (numB === '2321') numB = '2414.5';
+                return numA.localeCompare(numB, undefined, { numeric: true });
+            });
+            notes.forEach(note => container.appendChild(note));
+        }
+
+        // ===== REQUIREMENTS TRACKING =====
+        function updateRequirements() {
+            const placedCourses = new Set();
+
+            // Find all placed courses (in finished or any semester)
+            COURSES.forEach(course => {
+                const location = courseLocations[course.code];
+                if (location !== 'unused') {
+                    placedCourses.add(course.code);
+                }
+            });
+
+            // Update core requirement checkboxes
+            let coreComplete = 0;
+            const coreCourses = COURSES.filter(c => c.isCore);
+            coreCourses.forEach(course => {
+                const checkbox = document.getElementById(`req-${course.code}`);
+                if (checkbox) {
+                    checkbox.checked = placedCourses.has(course.code);
+                    if (checkbox.checked) coreComplete++;
+                }
+            });
+
+            // Update research requirement (41XX) - need 4 of 5
+            const researchCourses = COURSES.filter(c => c.isResearch);
+            const researchPlaced = researchCourses.filter(c => placedCourses.has(c.code)).length;
+            const researchCheckbox = document.getElementById('req-41XX');
+            if (researchCheckbox) {
+                researchCheckbox.checked = researchPlaced >= 3;
+                if (researchCheckbox.checked) coreComplete++;
+            }
+
+            // Update one-of-four checkboxes and track how many are placed
+            let oneOfFourPlacedCount = 0;
+            const oneOfFourCourses = COURSES.filter(c => c.isOneOfFour);
+            const placedOneOfFourCodes = [];
+            oneOfFourCourses.forEach(course => {
+                const checkbox = document.getElementById(`req-${course.code}`);
+                if (checkbox) {
+                    checkbox.checked = placedCourses.has(course.code);
+                    if (checkbox.checked) {
+                        oneOfFourPlacedCount++;
+                        placedOneOfFourCodes.push(course.code);
+                    }
+                }
+            });
+
+            // Update one-of-four section styling (complete if at least 1 is placed)
+            const oneOfFourSection = document.querySelector('.one-of-four-requirements');
+            oneOfFourSection.classList.toggle('complete', oneOfFourPlacedCount >= 1);
+
+            // Calculate elective hours:
+            // - Pure electives count as 3 hours each
+            // - One-of-four courses beyond the first one also count as 3 hours each
+            const electiveCourses = COURSES.filter(c => c.isElective);
+            const placedPureElectives = electiveCourses.filter(c => placedCourses.has(c.code));
+            
+            // Extra one-of-four courses (beyond the first) count as electives
+            const extraOneOfFourAsElectives = placedOneOfFourCodes.slice(1); // All but the first
+            
+            // Build list of courses counting as electives
+            const electiveCourseCodes = [
+                ...placedPureElectives.map(c => c.code.replace('MATH ', '')),
+                ...extraOneOfFourAsElectives.map(code => code.replace('MATH ', ''))
+            ];
+            
+            // Total elective "slots" filled
+            const totalElectiveSlots = placedPureElectives.length + extraOneOfFourAsElectives.length;
+
+            const elective1Check = document.getElementById('elective1Check');
+            const elective2Check = document.getElementById('elective2Check');
+            elective1Check.checked = totalElectiveSlots >= 1;
+            elective2Check.checked = totalElectiveSlots >= 2;
+
+            // Update elective list display
+            const electiveList = document.getElementById('electiveList');
+            if (electiveCourseCodes.length > 0) {
+                electiveList.innerHTML = electiveCourseCodes.map(code => `<span>${code}</span>`).join('');
+            } else {
+                electiveList.innerHTML = '<em style="opacity: 0.5;">None placed</em>';
+            }
+
+            // Update elective section styling
+            const electiveSection = document.querySelector('.elective-requirements');
+            electiveSection.classList.toggle('complete', totalElectiveSlots >= 2);
+
+            // Update certificate checkboxes
+            let certificateComplete = 0;
+            const certificateCourses = COURSES.filter(c => c.isCertificate);
+            certificateCourses.forEach(course => {
+                const checkbox = document.getElementById(`cert-${course.code}`);
+                if (checkbox) {
+                    checkbox.checked = placedCourses.has(course.code);
+                    if (checkbox.checked) certificateComplete++;
+                }
+            });
+
+            // Update certificate section styling (complete if all are placed)
+            const certificateSection = document.querySelector('.certificate-requirements');
+            certificateSection.classList.toggle('complete', certificateComplete >= certificateCourses.length);
+
+            // Check if all requirements are complete (not including certificate)
+            // Core count is now 10 regular + 1 for 41XX = 11 total
+            const totalCoreRequired = coreCourses.length + 1; // +1 for 41XX
+            const allComplete = (coreComplete === totalCoreRequired) && (oneOfFourPlacedCount >= 1) && (totalElectiveSlots >= 2);
+            document.getElementById('requirementsHeader').classList.toggle('all-complete', allComplete);
+        }
+
+        // ===== SUMMER TOGGLE =====
+        function setupSummerToggle() {
+            const toggle = document.getElementById('summerToggle');
+            toggle.addEventListener('change', () => {
+                // Check if any summer semesters have courses
+                const summerHasCourses = COURSES.some(course => {
+                    const location = courseLocations[course.code];
+                    return location && location.includes('summer');
+                });
+
+                if (!toggle.checked && summerHasCourses) {
+                    // Prevent toggle and show warning
+                    toggle.checked = true;
+                    showModal();
+                    return;
+                }
+
+                // Toggle summer visibility
+                const grid = document.getElementById('semesterGrid');
+                grid.classList.toggle('show-summer', toggle.checked);
+                grid.classList.toggle('hide-summer', !toggle.checked);
+
+                // Hide/show summer boxes
+                document.querySelectorAll('.semester-box.summer').forEach(box => {
+                    box.classList.toggle('summer-hidden', !toggle.checked);
+                });
+            });
+        }
+
+        function showModal() {
+            document.getElementById('warningModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('warningModal').classList.remove('show');
+        }
+
+        // Close modal on outside click
+        document.getElementById('warningModal').addEventListener('click', (e) => {
+            if (e.target.id === 'warningModal') closeModal();
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

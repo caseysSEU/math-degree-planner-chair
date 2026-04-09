@@ -1181,6 +1181,10 @@
                 }
             });
 
+            // Update core section styling (complete if all core + research are checked)
+            const coreSection = document.querySelector('.core-requirements');
+            coreSection.classList.toggle('complete', coreComplete === coreCourses.length + 1);
+
             // Update one-of-four section styling (complete if at least 1 is placed)
             const oneOfFourSection = document.querySelector('.one-of-four-requirements');
             oneOfFourSection.classList.toggle('complete', oneOfFourPlacedCount >= 1);

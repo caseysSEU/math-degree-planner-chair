@@ -73,7 +73,7 @@
         }
 
         .core-requirements {
-            flex: 8;
+            flex: 4;
         }
 
         .core-requirements .checkbox-grid {
@@ -102,6 +102,50 @@
         .certificate-requirements {
             flex: 3;
         }
+
+        .student-requirements {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .student-requirements select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 6px 12px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: 'Source Sans Pro', sans-serif;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .save-btn:hover { background: #4a6cf0; }
+
+        .save-confirmation {
+            font-size: 12px;
+            color: #388e3c;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-confirmation.show { opacity: 1; }
 
         .certificate-requirements .checkbox-grid {
             display: flex;
@@ -293,7 +337,6 @@
             opacity: 0.4;
             background: #e0e0e0;
             border-color: #bbb;
-            pointer-events: none;
         }
 
         .semester-box.invalid-drop.summer {
@@ -412,6 +455,12 @@
             border-color: #bbb;
         }
 
+        .course-note.out-of-sequence {
+            background: #ffe0b2;
+            border-color: #ff8f00;
+            outline: 2px solid #e65100;
+        }
+
         .course-note .course-prereqs {
             font-size: 10px;
             color: #777;
@@ -479,32 +528,84 @@
         .modal-content button:hover {
             background: #4a6cf0;
         }
+
+        /* ===== AUTH OVERLAY ===== */
+        .auth-overlay {
+            display: flex;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.65);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .auth-box {
+            background: white;
+            padding: 36px 44px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            min-width: 300px;
+        }
+
+        .auth-box h2 {
+            font-size: 18px;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .auth-box input[type="password"] {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            text-align: center;
+            outline: none;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        .auth-box input[type="password"]:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .auth-box button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 9px 28px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: 'Source Sans Pro', sans-serif;
+            cursor: pointer;
+        }
+
+        .auth-box button:hover { background: #4a6cf0; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake { animation: shake 0.4s; }
     </style>
-    <!-- Firebase SDK (modular v11) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-
-        // Your config here
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            // ...etc
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Make db available globally so your other JS can use it
-        window.db = db;
-        window.firestoreReady = true;
-        window.dispatchEvent(new Event('firestoreReady'));
-    </script>
 </head>
 <body>
     <!-- REQUIREMENTS HEADER -->
     <div class="requirements-header" id="requirementsHeader">
+        <div class="requirements-section student-requirements">
+            <h3>Student</h3>
+            <select id="studentSelect">
+                <option value="">— Select Student —</option>
+            </select>
+            <button class="save-btn" id="saveBtn">Save</button>
+            <div class="save-confirmation" id="saveConfirmation">Saved!</div>
+        </div>
         <div class="requirements-section core-requirements">
             <h3>Core Requirements</h3>
             <div class="checkbox-grid" id="coreCheckboxes">
@@ -576,6 +677,16 @@
         </div>
     </div>
 
+    <!-- AUTH OVERLAY -->
+    <div class="auth-overlay" id="authOverlay" style="display:none">
+        <div class="auth-box">
+            <h2>Degree Planner</h2>
+            <input type="password" id="authPassword" placeholder="Password"
+                onkeydown="if(event.key==='Enter') submitAuth()" />
+            <button onclick="submitAuth()">Enter</button>
+        </div>
+    </div>
+
     <!-- WARNING MODAL -->
     <div class="modal-overlay" id="warningModal">
         <div class="modal-content">
@@ -584,6 +695,114 @@
             <button onclick="closeModal()">OK</button>
         </div>
     </div>
+
+    <script type="module">
+        // ===== FIREBASE / STUDENT LOGIC =====
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNVmnET3a8kDBRjR5hSb1QY-XcTjPgANc",
+            authDomain: "degree-planner-3a064.firebaseapp.com",
+            projectId: "degree-planner-3a064",
+            storageBucket: "degree-planner-3a064.firebasestorage.app",
+            messagingSenderId: "445307355300",
+            appId: "1:445307355300:web:2b45764f274b31536f6631"
+        };
+
+        const STUDENTS = [
+            { id: "curl",          name: "Curl, Jonathan R." },
+            { id: "dunn",          name: "Dunn, Henry J." },
+            { id: "glazener",      name: "Glazener, Jacob L." },
+            { id: "guajardo",      name: "Guajardo, Josiah A." },
+            { id: "hoffman",       name: "Hoffman, Isaiah K." },
+            { id: "islam",         name: "Islam, Mayukh I." },
+            { id: "jowad",         name: "Jowad, Rifat Abrar" },
+            { id: "kim",           name: "Kim, Woo Seok" },
+            { id: "mohsin",        name: "Mohsin, Abdur Rehman Bin" },
+            { id: "omoigberai",    name: "Omoigberai, Joshua I." },
+            { id: "piskin",        name: "Piskin, Belgin" },
+            { id: "ramirez-nunez", name: "Ramirez Nunez, Ivan" },
+            { id: "raza",          name: "Raza, Syed A." },
+            { id: "roque",         name: "Roque, Chloe N." },
+            { id: "shroff",        name: "Shroff, Dharmik M." },
+            { id: "soviero",       name: "Soviero, Liette J." },
+            { id: "tovar-castro",  name: "Tovar-Castro, Mia" },
+            { id: "tovar-pedroza", name: "Tovar Pedroza, Natalia" },
+            { id: "yoshioka",      name: "Yoshioka, Joshua A." },
+        ];
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentStudentId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate student dropdown
+            const select = document.getElementById('studentSelect');
+            STUDENTS.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = student.name;
+                select.appendChild(option);
+            });
+
+            // Load on student selection
+            select.addEventListener('change', () => {
+                currentStudentId = select.value || null;
+                if (currentStudentId) loadStudentData(currentStudentId);
+            });
+
+            // Save button
+            document.getElementById('saveBtn').addEventListener('click', () => {
+                if (!currentStudentId) { alert('Please select a student first.'); return; }
+                saveStudentData(currentStudentId);
+            });
+        });
+
+        async function loadStudentData(studentId) {
+            try {
+                window.resetAllPlacements();
+                const snapshot = await getDocs(collection(db, 'students', studentId, 'placements'));
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.courses && Array.isArray(data.courses)) {
+                        data.courses.forEach(courseCode => window.placeCourse(courseCode, docSnap.id));
+                    }
+                });
+            } catch (err) {
+                console.error('Error loading student data:', err);
+            }
+        }
+
+        async function saveStudentData(studentId) {
+            try {
+                const placements = window.getAllPlacements();
+                const studentName = STUDENTS.find(s => s.id === studentId)?.name || studentId;
+
+                const writes = Object.entries(placements).map(([semId, data]) =>
+                    setDoc(doc(db, 'students', studentId, 'placements', semId), {
+                        courses: data.courses,
+                        semesterLabel: data.semesterLabel,
+                        updatedAt: serverTimestamp()
+                    })
+                );
+
+                writes.push(setDoc(doc(db, 'students', studentId), {
+                    name: studentName,
+                    lastUpdated: serverTimestamp()
+                }));
+
+                await Promise.all(writes);
+
+                const confirmation = document.getElementById('saveConfirmation');
+                confirmation.classList.add('show');
+                setTimeout(() => confirmation.classList.remove('show'), 2000);
+            } catch (err) {
+                console.error('Error saving student data:', err);
+            }
+        }
+    </script>
 
     <script>
         // ===== COURSE DATA =====
@@ -649,12 +868,13 @@
         // Add final semesters for 2030
         SEMESTERS.push({ id: 'summer-2030', label: 'Summer 2030', type: 'summer' });
 
-        // Reorganize into rows: Fall | Spring | Summer per academic year
+        // Reorganize into rows: Summer | Fall | Spring per academic year
         const SEMESTER_ROWS = [
-            [{ id: 'fall-2026', label: 'Fall 2026', type: 'fall' }, { id: 'spring-2027', label: 'Spring 2027', type: 'spring' }, { id: 'summer-2027', label: 'Summer 2027', type: 'summer' }],
-            [{ id: 'fall-2027', label: 'Fall 2027', type: 'fall' }, { id: 'spring-2028', label: 'Spring 2028', type: 'spring' }, { id: 'summer-2028', label: 'Summer 2028', type: 'summer' }],
-            [{ id: 'fall-2028', label: 'Fall 2028', type: 'fall' }, { id: 'spring-2029', label: 'Spring 2029', type: 'spring' }, { id: 'summer-2029', label: 'Summer 2029', type: 'summer' }],
-            [{ id: 'fall-2029', label: 'Fall 2029', type: 'fall' }, { id: 'spring-2030', label: 'Spring 2030', type: 'spring' }, { id: 'summer-2030', label: 'Summer 2030', type: 'summer' }],
+            [{ id: 'summer-2026', label: 'Summer 2026', type: 'summer' }, { id: 'fall-2026', label: 'Fall 2026', type: 'fall' }, { id: 'spring-2027', label: 'Spring 2027', type: 'spring' }],
+            [{ id: 'summer-2027', label: 'Summer 2027', type: 'summer' }, { id: 'fall-2027', label: 'Fall 2027', type: 'fall' }, { id: 'spring-2028', label: 'Spring 2028', type: 'spring' }],
+            [{ id: 'summer-2028', label: 'Summer 2028', type: 'summer' }, { id: 'fall-2028', label: 'Fall 2028', type: 'fall' }, { id: 'spring-2029', label: 'Spring 2029', type: 'spring' }],
+            [{ id: 'summer-2029', label: 'Summer 2029', type: 'summer' }, { id: 'fall-2029', label: 'Fall 2029', type: 'fall' }, { id: 'spring-2030', label: 'Spring 2030', type: 'spring' }],
+            [{ id: 'summer-2030', label: 'Summer 2030', type: 'summer' }],
         ];
 
         // State: track where each course is placed
@@ -837,10 +1057,6 @@
             const courseCode = draggedCourse.dataset.code;
             const semesterId = zone.dataset.semester;
 
-            if (!canDropInSemester(courseCode, semesterId)) {
-                return; // Silently reject
-            }
-
             // Move the course
             let targetContainer;
             if (semesterId === 'finished') {
@@ -854,39 +1070,44 @@
             if (targetContainer) {
                 targetContainer.appendChild(draggedCourse);
                 courseLocations[courseCode] = semesterId || 'unused';
+
+                // Apply out-of-sequence tint if dropped outside the allowed semesters
+                const course = COURSES.find(c => c.code === courseCode);
+                if (semesterId && semesterId !== 'finished' && course && course.allowed !== null && !course.allowed.includes(semesterId)) {
+                    draggedCourse.classList.add('out-of-sequence');
+                } else {
+                    draggedCourse.classList.remove('out-of-sequence');
+                }
+
                 updateRequirements();
                 sortContainerByCode(targetContainer);
             }
-            
+        }
 
+        function isInAllowedSemesters(courseCode, semesterId) {
+            const course = COURSES.find(c => c.code === courseCode);
+            if (!course) return false;
+            if (course.allowed === null) return true;
+            return course.allowed.includes(semesterId);
         }
 
         function canDropInSemester(courseCode, semesterId) {
             // Unused area always accepts
             if (!semesterId) return true;
-
-            // Finished box always accepts (ignores restrictions)
+            // Finished box always accepts
             if (semesterId === 'finished') return true;
-
-            // Check course restrictions
-            const course = COURSES.find(c => c.code === courseCode);
-            if (!course) return false;
-
-            // null means any semester is allowed
-            if (course.allowed === null) return true;
-
-            // Check if this semester is in the allowed list
-            return course.allowed.includes(semesterId);
+            // All semester boxes now accept any course
+            return true;
         }
 
         function highlightValidSemesters(courseCode) {
             const course = COURSES.find(c => c.code === courseCode);
             if (!course || course.allowed === null) return; // No restrictions, don't gray anything
 
-            // Gray out all semester boxes that are NOT valid for this course
+            // Gray out all semester boxes that are NOT in the allowed list for this course
             document.querySelectorAll('.semester-box').forEach(box => {
                 const semesterId = box.dataset.semester;
-                if (!canDropInSemester(courseCode, semesterId)) {
+                if (!isInAllowedSemesters(courseCode, semesterId)) {
                     box.classList.add('invalid-drop');
                 }
             });
@@ -1061,8 +1282,86 @@
             if (e.target.id === 'warningModal') closeModal();
         });
 
+        // ===== AUTH =====
+        function checkAuth() {
+            if (!sessionStorage.getItem('authenticated')) {
+                document.getElementById('authOverlay').style.display = 'flex';
+            }
+        }
+
+        function submitAuth() {
+            const input = document.getElementById('authPassword');
+            if (input.value === 'carolg') {
+                sessionStorage.setItem('authenticated', 'true');
+                document.getElementById('authOverlay').style.display = 'none';
+            } else {
+                input.classList.remove('shake');
+                void input.offsetWidth; // force reflow
+                input.classList.add('shake');
+                input.value = '';
+            }
+        }
+
+        // ===== GLOBAL HELPERS FOR FIREBASE MODULE =====
+        window.COURSES = COURSES;
+        window.SEMESTER_ROWS = SEMESTER_ROWS;
+        window.courseLocations = courseLocations;
+
+        window.resetAllPlacements = function() {
+            const unusedContainer = document.getElementById('unusedCourses');
+            document.querySelectorAll('.course-note').forEach(note => {
+                note.classList.remove('out-of-sequence');
+                unusedContainer.appendChild(note);
+                courseLocations[note.dataset.code] = 'unused';
+            });
+            sortContainerByCode(unusedContainer);
+            updateRequirements();
+        };
+
+        window.placeCourse = function(courseCode, semesterId) {
+            const note = document.querySelector(`.course-note[data-code="${CSS.escape(courseCode)}"]`);
+            if (!note) return;
+            let targetContainer;
+            if (semesterId === 'finished') {
+                targetContainer = document.getElementById('finishedCourses');
+            } else {
+                targetContainer = document.getElementById(`courses-${semesterId}`);
+            }
+            if (targetContainer) {
+                note.classList.remove('out-of-sequence');
+                const course = COURSES.find(c => c.code === courseCode);
+                if (semesterId !== 'finished' && course && course.allowed !== null && !course.allowed.includes(semesterId)) {
+                    note.classList.add('out-of-sequence');
+                }
+                targetContainer.appendChild(note);
+                courseLocations[courseCode] = semesterId;
+                sortContainerByCode(targetContainer);
+            }
+        };
+
+        window.getAllPlacements = function() {
+            const placements = {};
+            SEMESTER_ROWS.flat().forEach(sem => {
+                const container = document.getElementById(`courses-${sem.id}`);
+                if (container) {
+                    const courses = Array.from(container.querySelectorAll('.course-note')).map(n => n.dataset.code);
+                    if (courses.length > 0) {
+                        placements[sem.id] = { courses, semesterLabel: sem.label };
+                    }
+                }
+            });
+            const finishedContainer = document.getElementById('finishedCourses');
+            if (finishedContainer) {
+                const finishedCourses = Array.from(finishedContainer.querySelectorAll('.course-note')).map(n => n.dataset.code);
+                if (finishedCourses.length > 0) {
+                    placements['finished'] = { courses: finishedCourses, semesterLabel: 'Finished' };
+                }
+            }
+            return placements;
+        };
+
         // Initialize on load
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => { init(); checkAuth(); });
     </script>
 </body>
 </html>

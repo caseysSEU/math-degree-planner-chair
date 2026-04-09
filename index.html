@@ -770,6 +770,7 @@
                         data.courses.forEach(courseCode => window.placeCourse(courseCode, docSnap.id));
                     }
                 });
+                window.updateRequirements();
             } catch (err) {
                 console.error('Error loading student data:', err);
             }
@@ -1306,6 +1307,7 @@
         window.COURSES = COURSES;
         window.SEMESTER_ROWS = SEMESTER_ROWS;
         window.courseLocations = courseLocations;
+        window.updateRequirements = updateRequirements;
 
         window.resetAllPlacements = function() {
             const unusedContainer = document.getElementById('unusedCourses');

@@ -832,27 +832,27 @@
             { code: 'MATH 2315', name: 'Discrete Mathematics', allowed: null, isCore: true },
             { code: 'MATH 2413', name: 'Calculus I', allowed: null, isCore: true },
             { code: 'MATH 2414', name: 'Calculus II', allowed: null, isCore: true, prereqs: '2413'},
-            { code: 'MATH 2321', name: 'Calculus III', allowed: ['summer-2026', 'fall-2026', 'fall-2027', 'summer-2027', 'summer-2028', 'summer-2029', 'fall-2029', 'summer-2030'], isCore: true, prereqs: '2414' },
-            { code: 'MATH 3305', name: 'Linear Algebra', allowed: ['spring-2027', 'spring-2028'], isCore: true, prereqs: '2413' },
-            { code: 'MATH 3310', name: 'Differential Equations', allowed: ['fall-2026', 'fall-2028'], isCore: true, prereqs: '2414' },
-            { code: 'MATH 3311', name: 'Inquiry & Proof', allowed: ['fall-2027', 'fall-2028', 'fall-2029', 'fall-2030'], isCore: true, prereqs: '2413, 2315' },
-            { code: 'MATH 3316', name: 'Intro to Real Analysis', allowed: ['spring-2028'], isCore: true, prereqs: '2414, 3311' },
-            { code: 'MATH 3326', name: 'Intro Math Stats', allowed: ['fall-2026', 'fall-2027', 'fall-2028', 'fall-2029'], isCore: true, isCertificate: true, prereqs: '2413' },
-            { code: 'MATH 4342', name: 'Abstract Algebra', allowed: ['spring-2027', 'spring-2029'], isCore: true, prereqs: '3311, 3305' },
+            { code: 'MATH 2321', name: 'Calculus III', allowed: ['summer-2026', 'fall-2026', 'fall-2027', 'summer-2027', 'summer-2028', 'summer-2029', 'fall-2029', 'summer-2030',], isCore: true, prereqs: '2414' },
+            { code: 'MATH 3305', name: 'Linear Algebra', allowed: ['spring-2027', 'spring-2028', 'spring-2029', 'spring-2030', 'spring-2031'], isCore: true, prereqs: '2413' },
+            { code: 'MATH 3310', name: 'Differential Equations', allowed: ['fall-2026', 'fall-2028', 'fall-2030'], isCore: true, prereqs: '2414' },
+            { code: 'MATH 3311', name: 'Inquiry & Proof', allowed: ['fall-2027', 'fall-2028', 'fall-2030'], isCore: true, prereqs: '2413, 2315' },
+            { code: 'MATH 3316', name: 'Intro to Real Analysis', allowed: ['spring-2028', 'spring-2030'], isCore: true, prereqs: '2414, 3311' },
+            { code: 'MATH 3326', name: 'Intro Math Stats', allowed: ['fall-2026', 'fall-2027', 'fall-2028', 'fall-2029', 'fall-2030'], isCore: true, isCertificate: true, prereqs: '2413' },
+            { code: 'MATH 4342', name: 'Abstract Algebra', allowed: ['spring-2027', 'spring-2029', 'spring-2031'], isCore: true, prereqs: '3311, 3305' },
 
             // One of Four Options (4) - these can also count as electives if >1 is placed
-            { code: 'MATH 3334', name: 'Probability Theory', allowed: ['fall-2027', 'fall-2029'], isOneOfFour: true, prereqs: '2414' },
-            { code: 'MATH 3337', name: 'Statistical Modeling', allowed: ['spring-2027', 'spring-2029'], isOneOfFour: true, prereqs: '3326' },
-            { code: 'MATH 4331', name: 'Complex Analysis', allowed: ['fall-2027', 'fall-2030'], isOneOfFour: true, prereqs: '2321, 3311' },
-            { code: 'MATH 4332', name: 'Topics in Real Analysis', allowed: ['fall-2028'], isOneOfFour: true, prereqs: '3311' },
+            { code: 'MATH 3334', name: 'Probability Theory', allowed: ['fall-2027', 'fall-2029', 'fall-2031'], isOneOfFour: true, prereqs: '2414' },
+            { code: 'MATH 3337', name: 'Statistical Modeling', allowed: ['spring-2027', 'spring-2029', 'spring-2031'], isOneOfFour: true, prereqs: '3326' },
+            { code: 'MATH 4331', name: 'Complex Analysis', allowed: ['fall-2027', 'fall-2030', 'fall-2034'], isOneOfFour: true, prereqs: '2321, 3311' },
+            { code: 'MATH 4332', name: 'Topics in Real Analysis', allowed: ['fall-2028', 'fall-2032'], isOneOfFour: true, prereqs: '3311' },
 
             // Electives (4 additional courses for variety)
-            { code: 'MATH 3338', name: 'Numerical Methods', allowed: ['fall-2026'], isElective: true, prereqs: '2414, COSC 1423'},
-            { code: 'MATH 3339', name: 'Introduction to Data Science', allowed: ['spring-2027', 'spring-2028', 'spring-2029', 'spring-2030'], isElective: true, isCertificate: true, prereqs: '2327' },
+            { code: 'MATH 3338', name: 'Numerical Methods', allowed: ['fall-2026', 'fall-2031', 'fall-2035'], isElective: true, prereqs: '2414, COSC 1423'},
+            { code: 'MATH 3339', name: 'Introduction to Data Science', allowed: ['spring-2027', 'spring-2028', 'spring-2029', 'spring-2030', 'spring-2031'], isElective: true, isCertificate: true, prereqs: '2327' },
             { code: 'MATH 3345', name: 'Special Topics in Mathematics', allowed: null, isElective: true, onDemandOnly: true},
             { code: 'MATH 3355', name: 'Special Topics in Statistics', allowed: null, isElective: true, onDemandOnly: true },
-            { code: 'MATH 4340', name: 'Data Science at Scale', allowed: null, isElective: true, onDemandOnly: true },
-            { code: 'MATH 4343', name: 'Topology', allowed: ['fall-2029'], isElective: true, prereqs: '3311' },
+            { code: 'MATH 4340', name: 'Data Science at Scale', allowed: ['spring-2027', 'spring-2028', 'spring-2029', 'spring-2030', 'spring-2031'], isElective: true, onDemandOnly: true },
+            { code: 'MATH 4343', name: 'Topology', allowed: ['fall-2029', 'fall-2033'], isElective: true, prereqs: '3311' },
             { code: 'MATH 4344', name: 'Advanced Topics in Mathematics', allowed: null, isElective: true, onDemandOnly: true },
 
             // Certificate only
@@ -892,7 +892,7 @@
             [{ id: 'summer-2027', label: 'Summer 2027', type: 'summer' }, { id: 'fall-2027', label: 'Fall 2027', type: 'fall' }, { id: 'spring-2028', label: 'Spring 2028', type: 'spring' }],
             [{ id: 'summer-2028', label: 'Summer 2028', type: 'summer' }, { id: 'fall-2028', label: 'Fall 2028', type: 'fall' }, { id: 'spring-2029', label: 'Spring 2029', type: 'spring' }],
             [{ id: 'summer-2029', label: 'Summer 2029', type: 'summer' }, { id: 'fall-2029', label: 'Fall 2029', type: 'fall' }, { id: 'spring-2030', label: 'Spring 2030', type: 'spring' }],
-            [{ id: 'summer-2030', label: 'Summer 2030', type: 'summer' }],
+            [{ id: 'summer-2030', label: 'Summer 2030', type: 'summer' }, { id: 'fall-2030', label: 'Fall 2030', type: 'fall' }, { id: 'spring-2031', label: 'Spring 2031', type: 'spring' }],
         ];
 
         // State: track where each course is placed
